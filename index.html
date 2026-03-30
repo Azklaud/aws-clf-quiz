@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWS CLF-C02 紫色小熊軟糖刷題版</title>
+  <style>
+    :root{
+      --bg:#f7f1ff;
+      --bg-2:#f2e8ff;
+      --card:rgba(255,255,255,.86);
+      --card-strong:#ffffff;
+      --line:#e5d8fb;
+      --line-2:#d8c2fb;
+      --text:#473662;
+      --muted:#7f6c9f;
+      --primary:#c8a3ff;
+      --primary-2:#b985ff;
+      --deep:#6b44b5;
+      --deep-2:#553296;
+      --deep-3:#442475;
+      --good:#8f73da;
+      --good-bg:#f0e9ff;
+      --wrong:#d377a2;
+      --wrong-bg:#ffeaf4;
+      --shadow:0 14px 35px rgba(107,68,181,.14);
+      --radius:24px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 8% 12%, rgba(200,163,255,.28) 0 90px, transparent 91px),
+        radial-gradient(circle at 92% 18%, rgba(107,68,181,.12) 0 85px, transparent 86px),
+        radial-gradient(circle at 84% 80%, rgba(185,133,255,.18) 0 110px, transparent 111px),
+        radial-gradient(circle at 10% 84%, rgba(107,68,181,.1) 0 65px, transparent 66px),
+        linear-gradient(180deg, #fbf8ff 0%, #f4edff 100%);
+      background-attachment: fixed;
+    }
+
+    .loader{ display:none !important; }
+
+    .wrap{
+      width:min(1320px, calc(100vw - 28px));
+      margin:18px auto 28px;
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card);
+      backdrop-filter: blur(14px);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .sidebar{
+      padding:18px;
+      position:sticky;
+      top:16px;
+    }
+
+    .main{
+      padding:18px;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.55rem;
+      color:var(--deep);
+      letter-spacing:.02em;
+    }
+
+    .subtitle{
+      margin-top:8px;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:.95rem;
+    }
+
+    .toolbar,.grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .toolbar{ margin-top:16px; }
+
+    label{
+      display:block;
+      font-size:.9rem;
+      color:var(--muted);
+      margin-bottom:6px;
+      font-weight:600;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .row > *{ flex:1; }
+
+    input,select,button{
+      width:100%;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.92);
+      color:var(--text);
+      padding:11px 14px;
+      font-size:.95rem;
+      outline:none;
+      transition:.15s ease;
+    }
+
+    input:focus,select:focus{
+      border-color:var(--primary-2);
+      box-shadow:0 0 0 4px rgba(185,133,255,.14);
+    }
+
+    button{
+      cursor:pointer;
+      background:linear-gradient(180deg, var(--primary) 0%, var(--primary-2) 100%);
+      color:white;
+      font-weight:800;
+      border-color:transparent;
+      box-shadow:0 9px 20px rgba(107,68,181,.18);
+    }
+
+    button:hover{ transform:translateY(-1px); filter:brightness(1.02); }
+    button:active{ transform:translateY(0); }
+
+    button.secondary{
+      background:#f2e9ff;
+      color:var(--deep);
+      border:1px solid #decafc;
+      box-shadow:none;
+    }
+
+    button.good{
+      background:linear-gradient(180deg, #8f73da 0%, #7455c8 100%);
+    }
+
+    button.warn{
+      background:linear-gradient(180deg, #7d58d4 0%, #633db9 100%);
+    }
+
+    .pill-row{
+      display:grid;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .pill{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.78);
+      border:1px solid var(--line);
+      font-size:.92rem;
+      color:var(--muted);
+    }
+
+    .pill b{ color:var(--deep); font-size:1rem; }
+
+    .section-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:18px;
+      margin-bottom:10px;
+    }
+
+    .section-title strong{
+      color:var(--deep);
+      font-size:1rem;
+    }
+
+    .status-list{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      max-height:340px;
+      overflow:auto;
+      padding-right:4px;
+    }
+
+    .status-list::-webkit-scrollbar{ width:8px; }
+    .status-list::-webkit-scrollbar-thumb{ background:#ccb1ff; border-radius:999px; }
+
+    .status-btn{
+      width:100%;
+      padding:11px 0;
+      border-radius:16px;
+      border:1px solid #dfcdfb;
+      background:linear-gradient(180deg, #d6b7ff 0%, #c18fff 100%);
+      color:white;
+      font-size:.9rem;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(107,68,181,.1);
+    }
+
+    .status-btn.current{
+      background:linear-gradient(180deg, var(--deep) 0%, var(--deep-2) 100%);
+      outline:2px solid rgba(107,68,181,.16);
+      outline-offset:2px;
+    }
+
+    .status-btn.done{
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.34), 0 6px 14px rgba(107,68,181,.1);
+    }
+
+    .status-btn.flagged{
+      position:relative;
+    }
+    .status-btn.flagged::after{
+      content:"★";
+      position:absolute;
+      top:4px;
+      right:8px;
+      font-size:.75rem;
+      opacity:.95;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .topbar .pill{
+      width:auto;
+      min-width:140px;
+      justify-content:center;
+      background:rgba(255,255,255,.66);
+    }
+
+    .question-box{
+      padding:22px;
+      border-radius:24px;
+      background:rgba(255,255,255,.68);
+      border:1px solid var(--line);
+      box-shadow:0 8px 22px rgba(107,68,181,.08);
+    }
+
+    .q-id{
+      color:var(--deep);
+      font-weight:900;
+      letter-spacing:.06em;
+      margin-bottom:14px;
+      font-size:.95rem;
+    }
+
+    .q-zh{
+      font-size:1.28rem;
+      line-height:1.75;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .en-wrap{
+      margin-top:14px;
+      display:none;
+      padding:14px 16px;
+      border-radius:18px;
+      background:#faf7ff;
+      border:1px dashed #dcc7ff;
+    }
+
+    .q-en{
+      font-size:.98rem;
+      line-height:1.7;
+      color:var(--muted);
+    }
+
+    .options{
+      display:grid;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .option{
+      border:1.5px solid #e7dbfb;
+      border-radius:22px;
+      padding:16px;
+      background:rgba(255,255,255,.9);
+      cursor:pointer;
+      transition:.15s ease;
+    }
+
+    .option:hover{
+      border-color:#caa7ff;
+      background:#fcfaff;
+      transform:translateY(-1px);
+    }
+
+    .option.selected{
+      border-color:var(--deep);
+      box-shadow:0 0 0 4px rgba(107,68,181,.09);
+    }
+
+    .option.correct{
+      background:var(--good-bg);
+      border-color:var(--good);
+    }
+
+    .option.wrong{
+      background:var(--wrong-bg);
+      border-color:var(--wrong);
+    }
+
+    .option-head{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .badge{
+      min-width:38px;
+      height:38px;
+      border-radius:50%;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:#efe6ff;
+      color:var(--deep);
+      font-weight:900;
+      border:1px solid #ddc7ff;
+      flex-shrink:0;
+    }
+
+    .option-content{ flex:1; }
+
+    .opt-zh{
+      line-height:1.75;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .opt-en{
+      display:none;
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px dashed #ebdfff;
+      color:var(--muted);
+      line-height:1.65;
+      font-size:.93rem;
+    }
+
+    .show-en .opt-en,
+    .show-en .en-wrap{
+      display:block;
+    }
+
+    .action-row{
+      display:flex;
+      gap:10px;
+      margin-top:18px;
+      flex-wrap:wrap;
+    }
+
+    .action-row button{
+      width:auto;
+      min-width:120px;
+    }
+
+    .feedback{
+      margin-top:16px;
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.84);
+      line-height:1.75;
+      display:none;
+    }
+
+    .feedback.show{ display:block; }
+    .feedback.ok{ border-color:var(--good); background:var(--good-bg); }
+    .feedback.no{ border-color:var(--wrong); background:var(--wrong-bg); }
+
+    .helper{
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.65;
+    }
+
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns:1fr; }
+      .sidebar{ position:static; }
+      .status-list{ grid-template-columns:repeat(5,1fr); max-height:260px; }
+    }
+
+    @media (max-width: 680px){
+      .wrap{ width:min(100vw - 18px, 100%); margin:10px auto 18px; }
+      .main,.sidebar,.question-box{ padding:16px; }
+      .status-list{ grid-template-columns:repeat(4,1fr); }
+      .q-zh{ font-size:1.08rem; }
+      .action-row button{ flex:1 1 calc(50% - 10px); min-width:auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="card sidebar">
+      <h1>CH1AY AWS</h1>
+      <div class="subtitle"><b>交大波迪猴子製作</b> </div>
+
+      <div class="toolbar">
+        <div>
+          <label for="jsonPath">JSON 檔名 / 路徑</label>
+          <input id="jsonPath" value="aws_clf_c02_full.json" />
+        </div>
+
+        <div class="row">
+          <button id="loadBtn">載入資料</button>
+          <button id="reloadBtn" class="secondary">重新載入</button>
+        </div>
+
+        <div>
+          <label for="searchInput">搜尋題號 / 關鍵字</label>
+          <input id="searchInput" placeholder="例如 0035 / Inspector / 安全" />
+        </div>
+
+        <div>
+          <label for="modeSelect">模式</label>
+          <select id="modeSelect">
+            <option value="practice">練習模式（可看答案）</option>
+            <option value="exam">測驗模式（答完才顯示）</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button id="randomBtn" class="warn">隨機一題</button>
+          <button id="flagBtn" class="secondary">標記此題</button>
+        </div>
+
+        <div class="row">
+          <button id="onlyWrongBtn" class="secondary">只看答錯</button>
+          <button id="toggleEnglishBtn" class="secondary">顯示英文</button>
+        </div>
+
+        <div class="row">
+          <button id="resetProgressBtn" class="secondary">清除紀錄</button>
+        </div>
+      </div>
+
+      <div class="pill-row">
+        <div class="pill"><span>總題數</span><b id="totalCount">0</b></div>
+        <div class="pill"><span>目前索引</span><b id="currentIndex">0</b></div>
+        <div class="pill"><span>答對 / 已答</span><b id="scoreInfo">0 / 0</b></div>
+      </div>
+
+      <div class="section-title">
+        <strong>題號列表</strong>
+        <button id="togglePanelBtn" class="secondary" style="width:auto; padding:9px 14px;">隱藏題號</button>
+      </div>
+      <div class="status-list" id="statusList"></div>
+
+      <div class="helper" style="margin-top:14px;">
+        作答、標記與模式會自動存在瀏覽器 localStorage。<br>
+        鍵盤也能操作：A/B/C/D/E 選答案、Enter 送出、←/→ 換題、R 隨機。
+      </div>
+    </aside>
+
+    <main class="card main" id="mainRoot">
+      <div class="topbar">
+        <div class="pill">題號：<b id="qidText">-</b></div>
+        <div class="pill">模式：<b id="modeText">練習模式</b></div>
+      </div>
+
+      <div class="question-box" id="questionWrap">
+        <div class="q-id" id="qId">QUESTION ----</div>
+        <div class="q-zh" id="qZh">請先載入 JSON 檔。</div>
+        <div class="en-wrap" id="enWrap">
+          <div class="q-en" id="qEn">請確認 HTML 與 JSON 在同一資料夾，或修改左側路徑後按「載入資料」。</div>
+        </div>
+      </div>
+
+      <div class="options" id="options"></div>
+
+      <div class="action-row">
+        <button id="prevBtn" class="secondary">上一題</button>
+        <button id="submitBtn" class="good">送出答案</button>
+        <button id="showBtn" class="secondary">顯示答案</button>
+        <button id="nextBtn">下一題</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+    </main>
+  </div>
+
+  <script>
+    const els = {
+      jsonPath: document.getElementById('jsonPath'),
+      loadBtn: document.getElementById('loadBtn'),
+      reloadBtn: document.getElementById('reloadBtn'),
+      searchInput: document.getElementById('searchInput'),
+      modeSelect: document.getElementById('modeSelect'),
+      randomBtn: document.getElementById('randomBtn'),
+      flagBtn: document.getElementById('flagBtn'),
+      onlyWrongBtn: document.getElementById('onlyWrongBtn'),
+      toggleEnglishBtn: document.getElementById('toggleEnglishBtn'),
+      resetProgressBtn: document.getElementById('resetProgressBtn'),
+      totalCount: document.getElementById('totalCount'),
+      currentIndex: document.getElementById('currentIndex'),
+      scoreInfo: document.getElementById('scoreInfo'),
+      statusList: document.getElementById('statusList'),
+      togglePanelBtn: document.getElementById('togglePanelBtn'),
+      qidText: document.getElementById('qidText'),
+      modeText: document.getElementById('modeText'),
+      qId: document.getElementById('qId'),
+      qEn: document.getElementById('qEn'),
+      qZh: document.getElementById('qZh'),
+      enWrap: document.getElementById('enWrap'),
+      options: document.getElementById('options'),
+      prevBtn: document.getElementById('prevBtn'),
+      submitBtn: document.getElementById('submitBtn'),
+      showBtn: document.getElementById('showBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      feedback: document.getElementById('feedback'),
+      mainRoot: document.getElementById('mainRoot')
+    };
+
+    const STORAGE_KEY = 'aws-clf-c02-live-state-purple-v1';
+
+    const state = {
+      questions: [],
+      filteredIndexes: [],
+      currentFilteredPos: 0,
+      selected: null,
+      mode: 'practice',
+      onlyWrong: false,
+      showEnglish: false,
+      panelOpen: true,
+      progress: {
+        answers: {},
+        flagged: {},
+      },
+    };
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        mode: state.mode,
+        progress: state.progress,
+        jsonPath: els.jsonPath.value,
+        onlyWrong: state.onlyWrong,
+        showEnglish: state.showEnglish,
+        panelOpen: state.panelOpen,
+      }));
+    }
+
+    function loadSavedState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.mode) {
+          state.mode = parsed.mode;
+          els.modeSelect.value = parsed.mode;
+        }
+        if (parsed.progress) state.progress = parsed.progress;
+        if (parsed.jsonPath) els.jsonPath.value = parsed.jsonPath;
+        if (typeof parsed.onlyWrong === 'boolean') state.onlyWrong = parsed.onlyWrong;
+        if (typeof parsed.showEnglish === 'boolean') state.showEnglish = parsed.showEnglish;
+        if (typeof parsed.panelOpen === 'boolean') state.panelOpen = parsed.panelOpen;
+      } catch (e) {
+        console.warn('Failed to load saved state', e);
+      }
+    }
+
+    async function loadQuestions() {
+      const path = els.jsonPath.value.trim();
+      if (!path) return alert('請輸入 JSON 路徑');
+      try {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('JSON 不是陣列格式');
+        state.questions = data;
+        applyFilter();
+        if (!state.filteredIndexes.length) throw new Error('載入成功，但沒有可顯示的題目');
+        state.currentFilteredPos = 0;
+        render();
+        saveState();
+      } catch (err) {
+        console.error(err);
+        els.qZh.textContent = '載入失敗';
+        els.qEn.textContent = `請確認 JSON 路徑是否正確，錯誤訊息：${err.message}`;
+        els.options.innerHTML = '';
+        els.feedback.className = 'feedback show no';
+        els.feedback.textContent = `無法載入 ${path}`;
+      }
+    }
+
+    function getCurrentQuestion() {
+      const idx = state.filteredIndexes[state.currentFilteredPos];
+      return state.questions[idx];
+    }
+
+    function normalize(text) {
+      return String(text || '').toLowerCase();
+    }
+
+    function applyFilter() {
+      const keyword = normalize(els.searchInput.value.trim());
+      state.filteredIndexes = state.questions
+        .map((q, i) => ({ q, i }))
+        .filter(({ q }) => {
+          const answerState = state.progress.answers[q.id];
+          if (state.onlyWrong && (!answerState || answerState.correct !== false)) return false;
+          if (!keyword) return true;
+          const blob = [
+            q.id,
+            q.question_en,
+            q.question_zh,
+            ...Object.entries(q.options || {}).flatMap(([k, v]) => [k, v?.en, v?.zh]),
+          ].join(' \n ').toLowerCase();
+          return blob.includes(keyword);
+        })
+        .map(x => x.i);
+
+      if (state.currentFilteredPos >= state.filteredIndexes.length) {
+        state.currentFilteredPos = Math.max(0, state.filteredIndexes.length - 1);
+      }
+    }
+
+    function renderStatusGrid() {
+      els.statusList.innerHTML = '';
+      const fragment = document.createDocumentFragment();
+      state.filteredIndexes.forEach((originalIndex, pos) => {
+        const q = state.questions[originalIndex];
+        const btn = document.createElement('button');
+        btn.className = 'status-btn';
+        btn.textContent = q.id;
+        if (pos === state.currentFilteredPos) btn.classList.add('current');
+        const ans = state.progress.answers[q.id];
+        if (ans && ans.submitted) btn.classList.add('done');
+        if (state.progress.flagged[q.id]) btn.classList.add('flagged');
+        btn.addEventListener('click', () => {
+          state.currentFilteredPos = pos;
+          state.selected = null;
+          render();
+        });
+        fragment.appendChild(btn);
+      });
+      els.statusList.appendChild(fragment);
+      els.statusList.style.display = state.panelOpen ? 'grid' : 'none';
+      els.togglePanelBtn.textContent = state.panelOpen ? '隱藏題號' : '顯示題號';
+    }
+
+    function renderStats() {
+      const answered = Object.values(state.progress.answers).filter(x => x && x.submitted).length;
+      const correct = Object.values(state.progress.answers).filter(x => x && x.correct === true).length;
+      els.totalCount.textContent = String(state.filteredIndexes.length || state.questions.length || 0);
+      els.currentIndex.textContent = state.filteredIndexes.length ? `${state.currentFilteredPos + 1} / ${state.filteredIndexes.length}` : '0';
+      els.scoreInfo.textContent = `${correct} / ${answered}`;
+      els.modeText.textContent = state.mode === 'practice' ? '練習模式' : '測驗模式';
+      els.onlyWrongBtn.textContent = state.onlyWrong ? '顯示全部' : '只看答錯';
+      els.toggleEnglishBtn.textContent = state.showEnglish ? '收起英文' : '顯示英文';
+      els.mainRoot.classList.toggle('show-en', state.showEnglish);
+      els.enWrap.style.display = state.showEnglish ? 'block' : 'none';
+    }
+
+    function renderQuestion() {
+      if (!state.filteredIndexes.length) {
+        els.qidText.textContent = '-';
+        els.qId.textContent = '沒有符合條件的題目';
+        els.qZh.textContent = '請換個搜尋關鍵字，或關掉「只看答錯」。';
+        els.qEn.textContent = '目前篩選結果為 0。';
+        els.options.innerHTML = '';
+        els.feedback.className = 'feedback show no';
+        els.feedback.textContent = '沒有可顯示的題目。';
+        return;
+      }
+
+      const q = getCurrentQuestion();
+      const saved = state.progress.answers[q.id] || {};
+      els.qidText.textContent = q.id;
+      els.qId.textContent = `QUESTION ${q.id}`;
+      els.qZh.textContent = q.question_zh || '';
+      els.qEn.textContent = q.question_en || '';
+      state.selected = saved.selected ?? null;
+
+      els.options.innerHTML = '';
+      Object.entries(q.options || {}).forEach(([key, val]) => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        if (state.selected === key) div.classList.add('selected');
+
+        const shouldReveal = state.mode === 'practice' ? saved.revealed : saved.submitted;
+        if (shouldReveal) {
+          if (key === q.answer) div.classList.add('correct');
+          if (saved.selected === key && saved.selected !== q.answer) div.classList.add('wrong');
+        }
+
+        div.innerHTML = `
+          <div class="option-head">
+            <div class="badge">${key}</div>
+            <div class="option-content">
+              <div class="opt-zh">${escapeHtml(val?.zh || '')}</div>
+              <div class="opt-en">${escapeHtml(val?.en || '')}</div>
+            </div>
+          </div>
+        `;
+
+        div.addEventListener('click', () => {
+          state.selected = key;
+          state.progress.answers[q.id] = {
+            ...(state.progress.answers[q.id] || {}),
+            selected: key,
+          };
+          saveState();
+          renderQuestion();
+          renderStatusGrid();
+          renderStats();
+        });
+        els.options.appendChild(div);
+      });
+
+      renderFeedback();
+    }
+
+    function renderFeedback() {
+      const q = getCurrentQuestion();
+      const saved = state.progress.answers[q.id] || {};
+      const revealed = state.mode === 'practice' ? saved.revealed : saved.submitted;
+      if (!revealed) {
+        els.feedback.className = 'feedback';
+        els.feedback.textContent = '';
+        return;
+      }
+
+      const correct = saved.correct === true || saved.selected === q.answer;
+      els.feedback.className = `feedback show ${correct ? 'ok' : 'no'}`;
+      const selectedText = saved.selected ? `你選的是 <b>${saved.selected}</b>` : '你尚未作答';
+      els.feedback.innerHTML = `${selectedText}，正確答案是 <b>${q.answer}</b>。`;
+    }
+
+    function render() {
+      renderStats();
+      renderQuestion();
+      renderStatusGrid();
+    }
+
+    function submitAnswer(showOnly = false) {
+      const q = getCurrentQuestion();
+      if (!q) return;
+      const prev = state.progress.answers[q.id] || {};
+      const selected = prev.selected ?? state.selected;
+      if (!showOnly && !selected) {
+        alert('請先選一個答案');
+        return;
+      }
+      state.progress.answers[q.id] = {
+        ...prev,
+        selected,
+        submitted: !showOnly ? true : (prev.submitted || false),
+        revealed: true,
+        correct: selected === q.answer,
+      };
+      saveState();
+      render();
+    }
+
+    function move(step) {
+      if (!state.filteredIndexes.length) return;
+      state.currentFilteredPos += step;
+      if (state.currentFilteredPos < 0) state.currentFilteredPos = 0;
+      if (state.currentFilteredPos > state.filteredIndexes.length - 1) state.currentFilteredPos = state.filteredIndexes.length - 1;
+      state.selected = null;
+      render();
+    }
+
+    function randomQuestion() {
+      if (!state.filteredIndexes.length) return;
+      state.currentFilteredPos = Math.floor(Math.random() * state.filteredIndexes.length);
+      state.selected = null;
+      render();
+    }
+
+    function toggleFlag() {
+      const q = getCurrentQuestion();
+      if (!q) return;
+      state.progress.flagged[q.id] = !state.progress.flagged[q.id];
+      if (!state.progress.flagged[q.id]) delete state.progress.flagged[q.id];
+      saveState();
+      renderStatusGrid();
+    }
+
+    function resetProgress() {
+      if (!confirm('確定要清除目前所有作答與標記紀錄嗎？')) return;
+      state.progress = { answers: {}, flagged: {} };
+      saveState();
+      render();
+    }
+
+    function togglePanel() {
+      state.panelOpen = !state.panelOpen;
+      saveState();
+      renderStatusGrid();
+    }
+
+    function toggleEnglish() {
+      state.showEnglish = !state.showEnglish;
+      saveState();
+      renderStats();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    els.loadBtn.addEventListener('click', loadQuestions);
+    els.reloadBtn.addEventListener('click', loadQuestions);
+    els.searchInput.addEventListener('input', () => {
+      applyFilter();
+      render();
+    });
+    els.modeSelect.addEventListener('change', () => {
+      state.mode = els.modeSelect.value;
+      saveState();
+      render();
+    });
+    els.randomBtn.addEventListener('click', randomQuestion);
+    els.flagBtn.addEventListener('click', toggleFlag);
+    els.onlyWrongBtn.addEventListener('click', () => {
+      state.onlyWrong = !state.onlyWrong;
+      applyFilter();
+      render();
+      saveState();
+    });
+    els.toggleEnglishBtn.addEventListener('click', toggleEnglish);
+    els.togglePanelBtn.addEventListener('click', togglePanel);
+    els.resetProgressBtn.addEventListener('click', resetProgress);
+    els.prevBtn.addEventListener('click', () => move(-1));
+    els.nextBtn.addEventListener('click', () => move(1));
+    els.submitBtn.addEventListener('click', () => submitAnswer(false));
+    els.showBtn.addEventListener('click', () => submitAnswer(true));
+
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+      if (e.key === 'ArrowLeft') move(-1);
+      if (e.key === 'ArrowRight') move(1);
+      if (e.key.toLowerCase() === 'r') randomQuestion();
+      if (['a', 'b', 'c', 'd', 'e'].includes(e.key.toLowerCase())) {
+        const choice = e.key.toUpperCase();
+        const q = getCurrentQuestion();
+        if (q && q.options[choice]) {
+          state.selected = choice;
+          state.progress.answers[q.id] = {
+            ...(state.progress.answers[q.id] || {}),
+            selected: choice,
+          };
+          saveState();
+          render();
+        }
+      }
+      if (e.key === 'Enter') submitAnswer(false);
+    });
+
+    loadSavedState();
+    renderStatusGrid();
+    renderStats();
+    loadQuestions();
+  </script>
+</body>
+</html>
