@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CH1AY AWS ｜ CLF-C02 練習系統</title>
-  <meta name="description" content="AWS CLF-C02 線上刷題系統，支援中英文切換與複選題練習">
-  <meta property="og:title" content="AWS Quiz App｜CLF-C02 練習系統">
-  <meta property="og:description" content="線上 AWS 刷題系統｜中英文切換｜模擬測驗">
-  <meta property="og:type" content="website">
+  <title>AWS Quiz App CLF-C02 練習系統</title>
   <style>
     :root{
       --bg:#f7f1ff;
@@ -45,6 +41,8 @@
         linear-gradient(180deg, #fbf8ff 0%, #f4edff 100%);
       background-attachment: fixed;
     }
+
+    .loader{ display:none !important; }
 
     .wrap{
       width:min(1320px, calc(100vw - 28px));
@@ -87,11 +85,12 @@
       font-size:.95rem;
     }
 
-    .toolbar{
+    .toolbar,.grid{
       display:grid;
       gap:12px;
-      margin-top:16px;
     }
+
+    .toolbar{ margin-top:16px; }
 
     label{
       display:block;
@@ -220,10 +219,11 @@
 
     .status-btn.done{
       box-shadow: inset 0 0 0 2px rgba(255,255,255,.34), 0 6px 14px rgba(107,68,181,.1);
-      filter: grayscale(0.4);
-      opacity: 0.85;
     }
 
+    .status-btn.flagged{
+      position:relative;
+    }
     .status-btn.flagged::after{
       content:"★";
       position:absolute;
@@ -274,7 +274,7 @@
 
     .en-wrap{
       margin-top:14px;
-      display:block;
+      display:none;
       padding:14px 16px;
       border-radius:18px;
       background:#faf7ff;
@@ -326,7 +326,7 @@
     .option-head{
       display:flex;
       gap:12px;
-      align-items:center;
+      align-items:flex-start;
     }
 
     .badge{
@@ -341,8 +341,9 @@
       font-weight:900;
       border:1px solid #ddc7ff;
       flex-shrink:0;
-      margin-right: 12px;
     }
+
+    .option-content{ flex:1; }
 
     .opt-zh{
       line-height:1.75;
@@ -351,10 +352,18 @@
     }
 
     .opt-en{
-      margin-top:4px;
+      display:none;
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px dashed #ebdfff;
       color:var(--muted);
       line-height:1.65;
       font-size:.93rem;
+    }
+
+    .show-en .opt-en,
+    .show-en .en-wrap{
+      display:block;
     }
 
     .action-row{
@@ -404,11 +413,21 @@
     }
   </style>
 </head>
+  <meta charset="UTF-8" />
+  <title>AWS Quiz App｜CLF-C02 練習系統</title>
+
+  <meta name="description" content="AWS CLF-C02 線上刷題系統，支援中英文切換與錯題練習">
+
+  <meta property="og:title" content="AWS Quiz App｜CLF-C02 練習系統">
+  <meta property="og:description" content="線上 AWS 刷題系統｜中英文切換｜模擬測驗">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://azklaud.github.io/aws-clf-quiz/">
+</head>
 <body>
   <div class="wrap">
     <aside class="card sidebar">
       <h1>CH1AY AWS</h1>
-      <div class="subtitle"><b>交大波迪猴子製作</b></div>
+      <div class="subtitle"><b>交大波迪猴子製作</b> </div>
 
       <div class="toolbar">
         <div>
@@ -441,7 +460,7 @@
 
         <div class="row">
           <button id="onlyWrongBtn" class="secondary">只看答錯</button>
-          <button id="togglePanelBtn" class="secondary">隱藏題號</button>
+          <button id="toggleEnglishBtn" class="secondary">顯示英文</button>
         </div>
 
         <div class="row">
@@ -452,11 +471,12 @@
       <div class="pill-row">
         <div class="pill"><span>總題數</span><b id="totalCount">0</b></div>
         <div class="pill"><span>目前索引</span><b id="currentIndex">0</b></div>
-        <div class="pill"><span>已答 / 答對</span><b id="scoreInfo">0 / 0</b></div>
+        <div class="pill"><span>答對 / 已答</span><b id="scoreInfo">0 / 0</b></div>
       </div>
 
       <div class="section-title">
         <strong>題號列表</strong>
+        <button id="togglePanelBtn" class="secondary" style="width:auto; padding:9px 14px;">隱藏題號</button>
       </div>
       <div class="status-list" id="statusList"></div>
 
@@ -476,7 +496,7 @@
         <div class="q-id" id="qId">QUESTION ----</div>
         <div class="q-zh" id="qZh">請先載入 JSON 檔。</div>
         <div class="en-wrap" id="enWrap">
-          <div class="q-en" id="qEn">請點擊左側「載入資料」按鈕。</div>
+          <div class="q-en" id="qEn">請確認 HTML 與 JSON 在同一資料夾，或修改左側路徑後按「載入資料」。</div>
         </div>
       </div>
 
@@ -484,7 +504,8 @@
 
       <div class="action-row">
         <button id="prevBtn" class="secondary">上一題</button>
-        <button id="submitBtn" class="good">確認送出</button>
+        <button id="submitBtn" class="good">送出答案</button>
+        <button id="showBtn" class="secondary">顯示答案</button>
         <button id="nextBtn">下一題</button>
       </div>
 
@@ -493,288 +514,514 @@
   </div>
 
   <script>
-    let allQuestions = [];
-    let filteredIndexes = [];
-    let currentFilteredPos = 0;
-    let currentSelectedChoices = []; // 支援複選的核心陣列
+  const els = {
+    jsonPath: document.getElementById('jsonPath'),
+    loadBtn: document.getElementById('loadBtn'),
+    reloadBtn: document.getElementById('reloadBtn'),
+    searchInput: document.getElementById('searchInput'),
+    modeSelect: document.getElementById('modeSelect'),
+    randomBtn: document.getElementById('randomBtn'),
+    flagBtn: document.getElementById('flagBtn'),
+    onlyWrongBtn: document.getElementById('onlyWrongBtn'),
+    toggleEnglishBtn: document.getElementById('toggleEnglishBtn'),
+    resetProgressBtn: document.getElementById('resetProgressBtn'),
+    totalCount: document.getElementById('totalCount'),
+    currentIndex: document.getElementById('currentIndex'),
+    scoreInfo: document.getElementById('scoreInfo'),
+    statusList: document.getElementById('statusList'),
+    togglePanelBtn: document.getElementById('togglePanelBtn'),
+    qidText: document.getElementById('qidText'),
+    modeText: document.getElementById('modeText'),
+    qId: document.getElementById('qId'),
+    qEn: document.getElementById('qEn'),
+    qZh: document.getElementById('qZh'),
+    enWrap: document.getElementById('enWrap'),
+    options: document.getElementById('options'),
+    prevBtn: document.getElementById('prevBtn'),
+    submitBtn: document.getElementById('submitBtn'),
+    showBtn: document.getElementById('showBtn'),
+    nextBtn: document.getElementById('nextBtn'),
+    feedback: document.getElementById('feedback'),
+    mainRoot: document.getElementById('mainRoot')
+  };
 
-    const STORAGE_KEY = 'aws-clf-c02-live-state-purple-v1';
-    let progress = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { answers: {}, flagged: {} };
+  const STORAGE_KEY = 'aws-clf-c02-live-state-purple-v2-multiselect';
 
-    // 初始化自動加載資料
-    async function loadQuestions() {
-      const path = els.jsonPath.value.trim();
-      try {
-        const res = await fetch(path);
-        allQuestions = await res.json();
-        els.totalCount.textContent = allQuestions.length;
-        applyFilter();
-        showQuestion();
-      } catch (err) {
-        els.qZh.textContent = '載入失敗';
-        els.qEn.textContent = '請點擊左側【載入資料】按鈕手動輸入正確的檔案名稱。';
+  const state = {
+    questions: [],
+    filteredIndexes: [],
+    currentFilteredPos: 0,
+    selected: [],
+    mode: 'practice',
+    onlyWrong: false,
+    showEnglish: false,
+    panelOpen: true,
+    progress: {
+      answers: {},
+      flagged: {},
+    },
+  };
+
+  function normalizeAnswer(ans) {
+    if (Array.isArray(ans)) return ans.map(String).sort();
+
+    return String(ans || '')
+      .split('')
+      .map(x => x.trim())
+      .filter(Boolean)
+      .sort();
+  }
+
+  function isAnswerCorrect(selected, answer) {
+    const s = normalizeAnswer(selected);
+    const a = normalizeAnswer(answer);
+
+    return s.length === a.length && s.every((x, i) => x === a[i]);
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      mode: state.mode,
+      progress: state.progress,
+      jsonPath: els.jsonPath.value,
+      onlyWrong: state.onlyWrong,
+      showEnglish: state.showEnglish,
+      panelOpen: state.panelOpen,
+    }));
+  }
+
+  function loadSavedState() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+
+      if (parsed.mode) {
+        state.mode = parsed.mode;
+        els.modeSelect.value = parsed.mode;
       }
+
+      if (parsed.progress) state.progress = parsed.progress;
+      if (parsed.jsonPath) els.jsonPath.value = parsed.jsonPath;
+      if (typeof parsed.onlyWrong === 'boolean') state.onlyWrong = parsed.onlyWrong;
+      if (typeof parsed.showEnglish === 'boolean') state.showEnglish = parsed.showEnglish;
+      if (typeof parsed.panelOpen === 'boolean') state.panelOpen = parsed.panelOpen;
+
+    } catch (e) {
+      console.warn('Failed to load saved state', e);
     }
+  }
 
-    function applyFilter() {
-      const keyword = els.searchInput.value.trim().toLowerCase();
-      filteredIndexes = [];
-      
-      allQuestions.forEach((q, idx) => {
-        const status = progress.answers[q.id];
-        if (state.onlyWrong && status !== 'wrong') return;
-        
-        if (keyword) {
-          const contentStr = (q.id + " " + q.question + " " + q.options.join(" ")).toLowerCase();
-          if (!contentStr.includes(keyword)) return;
-        }
-        filteredIndexes.push(idx);
-      });
+  async function loadQuestions() {
+    const path = els.jsonPath.value.trim();
+    if (!path) return alert('請輸入 JSON 路徑');
 
-      if (currentFilteredPos >= filteredIndexes.length) {
-        currentFilteredPos = Math.max(0, filteredIndexes.length - 1);
-      }
-      updateSidebarStats();
-    }
+    try {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    function showQuestion() {
-      if (filteredIndexes.length === 0) {
-        els.qidText.textContent = '-';
-        els.qId.textContent = '沒有符合的題目';
-        els.qZh.textContent = '請更換關鍵字或關閉只看答錯。';
-        els.qEn.textContent = '';
-        els.options.innerHTML = '';
-        els.feedback.style.display = 'none';
-        return;
-      }
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('JSON 不是陣列格式');
 
-      const originalIdx = filteredIndexes[currentFilteredPos];
-      const q = allQuestions[originalIdx];
-      
-      els.qidText.textContent = q.id;
-      els.qId.textContent = `QUESTION ${q.id}`;
-      currentSelectedChoices = [];
+      state.questions = data;
+      applyFilter();
 
-      // 自動解析清洗中英雙語題目
-      const qParts = q.question.replace(/英文:|中文:/g, '|||').split('|||').filter(t => t.trim() !== '');
-      els.qZh.textContent = qParts[1] || qParts[0];
-      els.qEn.textContent = qParts[1] ? qParts[0] : 'AWS Certified Cloud Practitioner';
+      if (!state.filteredIndexes.length) throw new Error('載入成功，但沒有可顯示的題目');
 
+      state.currentFilteredPos = 0;
+      render();
+      saveState();
+
+    } catch (err) {
+      console.error(err);
+
+      els.qZh.textContent = '載入失敗';
+      els.qEn.textContent = `請確認 JSON 路徑是否正確，錯誤訊息：${err.message}`;
       els.options.innerHTML = '';
-      els.feedback.style.display = 'none';
-      document.getElementById('submitBtn').disabled = false;
+      els.feedback.className = 'feedback show no';
+      els.feedback.textContent = `無法載入 ${path}`;
+    }
+  }
 
-      // 解析題目正確答案數量 (單選1個，複選多個如 A,D)
-      const correctAnswers = q.answer.split(',').map(a => a.trim());
+  function getCurrentQuestion() {
+    const idx = state.filteredIndexes[state.currentFilteredPos];
+    return state.questions[idx];
+  }
 
-      q.options.forEach(opt => {
-        const div = document.createElement('div');
-        div.className = 'option';
-        
-        let cleanOpt = opt.replace(/英文:|中文:|\|/g, '|||');
-        let parts = cleanOpt.split('|||').filter(t => t.trim() !== '');
-        let prefix = parts[0] ? parts[0].substring(0,2) : '';
-        let enPart = parts[0] ? parts[0].substring(2).trim() : '';
-        let zhPart = parts[1] ? parts[1].trim() : '';
-        
-        const myLetter = prefix.substring(0,1);
-        div.dataset.choice = myLetter;
+  function normalize(text) {
+    return String(text || '').toLowerCase();
+  }
 
-        div.innerHTML = `
-          <div class="option-head">
-            <div class="badge">${myLetter}</div>
-            <div class="option-content">
-              <div class="opt-zh">${zhPart || enPart}</div>
-              <div class="opt-en">${zhPart ? enPart : ''}</div>
-            </div>
-          </div>
-        `;
+  function applyFilter() {
+    const keyword = normalize(els.searchInput.value.trim());
 
-        // 核心：支援單選/複選混合的點擊事件
-        div.onclick = () => {
-          if (document.getElementById('submitBtn').disabled) return;
+    state.filteredIndexes = state.questions
+      .map((q, i) => ({ q, i }))
+      .filter(({ q }) => {
+        const answerState = state.progress.answers[q.id];
 
-          if (correctAnswers.length === 1) {
-            // 單選模式
-            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-            div.classList.add('selected');
-            currentSelectedChoices = [myLetter];
-            checkAnswer(); // 單選直接對答案
-          } else {
-            // 複選模式
-            if (div.classList.contains('selected')) {
-              div.classList.remove('selected');
-              currentSelectedChoices = currentSelectedChoices.filter(c => c !== myLetter);
-            } else {
-              if (currentSelectedChoices.length < correctAnswers.length) {
-                div.classList.add('selected');
-                currentSelectedChoices.push(myLetter);
-              } else {
-                alert(`本題為複選題，只能選擇 ${correctAnswers.length} 個選項喔！`);
-              }
-            }
-          }
-        };
-        els.options.appendChild(div);
+        if (state.onlyWrong && (!answerState || answerState.correct !== false)) return false;
+
+        if (!keyword) return true;
+
+        const blob = [
+          q.id,
+          q.question_en,
+          q.question_zh,
+          ...Object.entries(q.options || {}).flatMap(([k, v]) => [k, v?.en, v?.zh]),
+        ].join(' \n ').toLowerCase();
+
+        return blob.includes(keyword);
+      })
+      .map(x => x.i);
+
+    if (state.currentFilteredPos >= state.filteredIndexes.length) {
+      state.currentFilteredPos = Math.max(0, state.filteredIndexes.length - 1);
+    }
+  }
+
+  function renderStatusGrid() {
+    els.statusList.innerHTML = '';
+
+    const fragment = document.createDocumentFragment();
+
+    state.filteredIndexes.forEach((originalIndex, pos) => {
+      const q = state.questions[originalIndex];
+      const btn = document.createElement('button');
+
+      btn.className = 'status-btn';
+      btn.textContent = q.id;
+
+      if (pos === state.currentFilteredPos) btn.classList.add('current');
+
+      const ans = state.progress.answers[q.id];
+      if (ans && ans.submitted) btn.classList.add('done');
+      if (state.progress.flagged[q.id]) btn.classList.add('flagged');
+
+      btn.addEventListener('click', () => {
+        state.currentFilteredPos = pos;
+        state.selected = [];
+        render();
       });
 
-      // 如果是先前做過的題目，重新渲染它的作答狀態
-      const historyStatus = progress.answers[q.id];
-      if (historyStatus) {
-        // 為了不影響刷題體驗，做過的題目可以自由查看
-      }
+      fragment.appendChild(btn);
+    });
 
-      updateSidebarStats();
-      renderStatusGrid();
+    els.statusList.appendChild(fragment);
+    els.statusList.style.display = state.panelOpen ? 'grid' : 'none';
+    els.togglePanelBtn.textContent = state.panelOpen ? '隱藏題號' : '顯示題號';
+  }
+
+  function renderStats() {
+    const answered = Object.values(state.progress.answers).filter(x => x && x.submitted).length;
+    const correct = Object.values(state.progress.answers).filter(x => x && x.correct === true).length;
+
+    els.totalCount.textContent = String(state.filteredIndexes.length || state.questions.length || 0);
+    els.currentIndex.textContent = state.filteredIndexes.length
+      ? `${state.currentFilteredPos + 1} / ${state.filteredIndexes.length}`
+      : '0';
+
+    els.scoreInfo.textContent = `${correct} / ${answered}`;
+    els.modeText.textContent = state.mode === 'practice' ? '練習模式' : '測驗模式';
+    els.onlyWrongBtn.textContent = state.onlyWrong ? '顯示全部' : '只看答錯';
+    els.toggleEnglishBtn.textContent = state.showEnglish ? '收起英文' : '顯示英文';
+    els.mainRoot.classList.toggle('show-en', state.showEnglish);
+    els.enWrap.style.display = state.showEnglish ? 'block' : 'none';
+  }
+
+  function renderQuestion() {
+    if (!state.filteredIndexes.length) {
+      els.qidText.textContent = '-';
+      els.qId.textContent = '沒有符合條件的題目';
+      els.qZh.textContent = '請換個搜尋關鍵字，或關掉「只看答錯」。';
+      els.qEn.textContent = '目前篩選結果為 0。';
+      els.options.innerHTML = '';
+      els.feedback.className = 'feedback show no';
+      els.feedback.textContent = '沒有可顯示的題目。';
+      return;
     }
 
-    function checkAnswer() {
-      if (filteredIndexes.length === 0) return;
-      const originalIdx = filteredIndexes[currentFilteredPos];
-      const q = allQuestions[originalIdx];
-      const correctAnswers = q.answer.split(',').map(a => a.trim());
+    const q = getCurrentQuestion();
+    const saved = state.progress.answers[q.id] || {};
 
-      if (currentSelectedChoices.length === 0) return alert("請先選取答案！");
-      if (correctAnswers.length > 1 && currentSelectedChoices.length < correctAnswers.length) {
-        return alert(`這是複選題，您需要選滿 ${correctAnswers.length} 個答案。`);
+    els.qidText.textContent = q.id;
+    els.qId.textContent = `QUESTION ${q.id}`;
+    els.qZh.textContent = q.question_zh || '';
+    els.qEn.textContent = q.question_en || '';
+
+    state.selected = Array.isArray(saved.selected)
+      ? saved.selected
+      : normalizeAnswer(saved.selected);
+
+    els.options.innerHTML = '';
+
+    Object.entries(q.options || {}).forEach(([key, val]) => {
+      const div = document.createElement('div');
+      div.className = 'option';
+
+      if (state.selected.includes(key)) {
+        div.classList.add('selected');
       }
 
-      document.getElementById('submitBtn').disabled = true;
+      const shouldReveal = state.mode === 'practice'
+        ? saved.revealed
+        : saved.submitted;
 
-      // 檢查是否全對
-      const wrongChoices = currentSelectedChoices.filter(c => !correctAnswers.includes(c));
-      const isCorrect = wrongChoices.length === 0 && currentSelectedChoices.length === correctAnswers.length;
+      if (shouldReveal) {
+        const correctAnswers = normalizeAnswer(q.answer);
 
-      els.feedback.style.display = 'block';
-      els.feedback.className = `feedback show ${isCorrect ? 'ok' : 'no'}`;
-      els.feedback.innerHTML = isCorrect 
-        ? `✨ <b>答對了！</b> 正確答案是：<b class="text-xl">${q.answer}</b>` 
-        : `❌ <b>答錯了！</b> 您的選擇：${currentSelectedChoices.join(',')}，正確答案是：<b class="text-xl">${q.answer}</b>`;
-
-      // 記錄作答狀態到 LocalStorage
-      if (!progress.answers[q.id]) {
-        progress.answers[q.id] = isCorrect ? 'correct' : 'wrong';
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-      }
-
-      // 將選項著色 (正確變綠，選錯變紅)
-      document.querySelectorAll('.option').forEach(opt => {
-        const letter = opt.dataset.choice;
-        if (correctAnswers.includes(letter)) {
-          opt.classList.remove('selected');
-          opt.classList.add('correct');
-        } else if (currentSelectedChoices.includes(letter)) {
-          opt.classList.remove('selected');
-          opt.classList.add('wrong');
+        if (correctAnswers.includes(key)) {
+          div.classList.add('correct');
         }
-      });
 
-      updateSidebarStats();
-      renderStatusGrid();
-    }
-
-    function move(step) {
-      if (filteredIndexes.length === 0) return;
-      currentFilteredPos += step;
-      if (currentFilteredPos < 0) currentFilteredPos = 0;
-      if (currentFilteredPos >= filteredIndexes.length) currentFilteredPos = filteredIndexes.length - 1;
-      showQuestion();
-    }
-
-    function renderStatusGrid() {
-      els.statusList.innerHTML = '';
-      filteredIndexes.forEach((originalIdx, pos) => {
-        const q = allQuestions[originalIdx];
-        const btn = document.createElement('button');
-        btn.className = 'status-btn';
-        btn.textContent = q.id.replace(/^0+/, ''); // 縮短題號顯示
-
-        if (pos === currentFilteredPos) btn.classList.add('current');
-        if (progress.answers[q.id]) btn.classList.add('done');
-        if (progress.flagged[q.id]) btn.classList.add('flagged');
-
-        btn.onclick = () => {
-          currentFilteredPos = pos;
-          showQuestion();
-        };
-        els.statusList.appendChild(btn);
-      });
-      els.statusList.style.display = state.panelOpen ? 'grid' : 'none';
-    }
-
-    function updateSidebarStats() {
-      els.currentIndex.textContent = filteredIndexes.length ? `${currentFilteredPos + 1} / ${filteredIndexes.length}` : '0';
-      const answersArr = Object.values(progress.answers);
-      const totalAns = answersArr.length;
-      const totalCorrect = answersArr.filter(v => v === 'correct').length;
-      els.scoreInfo.textContent = `${totalCorrect} / ${totalAns}`;
-    }
-
-    // 狀態管理變數
-    const state = { onlyWrong: false, panelOpen: true };
-
-    // 綁定所有按鈕事件
-    els.loadBtn.onclick = loadQuestions;
-    els.reloadBtn.onclick = loadQuestions;
-    document.getElementById('nextBtn').onclick = () => move(1);
-    document.getElementById('prevBtn').onclick = () => move(-1);
-    document.getElementById('submitBtn').onclick = checkAnswer;
-    
-    document.getElementById('randomBtn').onclick = () => {
-      if (filteredIndexes.length === 0) return;
-      currentFilteredPos = Math.floor(Math.random() * filteredIndexes.length);
-      showQuestion();
-    };
-
-    document.getElementById('flagBtn').onclick = () => {
-      if (filteredIndexes.length === 0) return;
-      const q = allQuestions[filteredIndexes[currentFilteredPos]];
-      progress.flagged[q.id] = !progress.flagged[q.id];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-      renderStatusGrid();
-    };
-
-    document.getElementById('onlyWrongBtn').onclick = () => {
-      state.onlyWrong = !state.onlyWrong;
-      document.getElementById('onlyWrongBtn').textContent = state.onlyWrong ? '顯示全部' : '只看答錯';
-      applyFilter();
-      currentFilteredPos = 0;
-      showQuestion();
-    };
-
-    document.getElementById('togglePanelBtn').onclick = () => {
-      state.panelOpen = !state.panelOpen;
-      document.getElementById('togglePanelBtn').textContent = state.panelOpen ? '隱藏題號' : '顯示題號';
-      renderStatusGrid();
-    };
-
-    document.getElementById('resetProgressBtn').onclick = () => {
-      if (confirm('確定要清除所有做題紀錄與標記嗎？')) {
-        localStorage.removeItem(STORAGE_KEY);
-        progress = { answers: {}, flagged: {} };
-        applyFilter();
-        currentFilteredPos = 0;
-        showQuestion();
+        if (state.selected.includes(key) && !correctAnswers.includes(key)) {
+          div.classList.add('wrong');
+        }
       }
+
+      div.innerHTML = `
+        <div class="option-head">
+          <div class="badge">${key}</div>
+          <div class="option-content">
+            <div class="opt-zh">${escapeHtml(val?.zh || '')}</div>
+            <div class="opt-en">${escapeHtml(val?.en || '')}</div>
+          </div>
+        </div>
+      `;
+
+      div.addEventListener('click', () => {
+        const selectedSet = new Set(state.selected);
+
+        if (selectedSet.has(key)) {
+          selectedSet.delete(key);
+        } else {
+          selectedSet.add(key);
+        }
+
+        state.selected = Array.from(selectedSet).sort();
+
+        state.progress.answers[q.id] = {
+          ...(state.progress.answers[q.id] || {}),
+          selected: state.selected,
+        };
+
+        saveState();
+        renderQuestion();
+        renderStatusGrid();
+        renderStats();
+      });
+
+      els.options.appendChild(div);
+    });
+
+    renderFeedback();
+  }
+
+  function renderFeedback() {
+    const q = getCurrentQuestion();
+    if (!q) return;
+
+    const saved = state.progress.answers[q.id] || {};
+    const revealed = state.mode === 'practice'
+      ? saved.revealed
+      : saved.submitted;
+
+    if (!revealed) {
+      els.feedback.className = 'feedback';
+      els.feedback.textContent = '';
+      return;
+    }
+
+    const selected = Array.isArray(saved.selected)
+      ? saved.selected
+      : normalizeAnswer(saved.selected);
+
+    const correct = saved.correct === true || isAnswerCorrect(selected, q.answer);
+
+    els.feedback.className = `feedback show ${correct ? 'ok' : 'no'}`;
+
+    const selectedText = selected.length
+      ? `你選的是 <b>${selected.join(', ')}</b>`
+      : '你尚未作答';
+
+    els.feedback.innerHTML = `${selectedText}，正確答案是 <b>${normalizeAnswer(q.answer).join(', ')}</b>。`;
+  }
+
+  function render() {
+    renderStats();
+    renderQuestion();
+    renderStatusGrid();
+  }
+
+  function submitAnswer(showOnly = false) {
+    const q = getCurrentQuestion();
+    if (!q) return;
+
+    const prev = state.progress.answers[q.id] || {};
+    const selected = Array.isArray(prev.selected)
+      ? prev.selected
+      : state.selected;
+
+    if (!showOnly && (!selected || selected.length === 0)) {
+      alert('請至少選一個答案');
+      return;
+    }
+
+    state.progress.answers[q.id] = {
+      ...prev,
+      selected,
+      submitted: !showOnly ? true : (prev.submitted || false),
+      revealed: true,
+      correct: isAnswerCorrect(selected, q.answer),
     };
 
-    els.searchInput.oninput = () => {
-      applyFilter();
-      currentFilteredPos = 0;
-      showQuestion();
+    saveState();
+    render();
+  }
+
+  function move(step) {
+    if (!state.filteredIndexes.length) return;
+
+    state.currentFilteredPos += step;
+
+    if (state.currentFilteredPos < 0) state.currentFilteredPos = 0;
+    if (state.currentFilteredPos > state.filteredIndexes.length - 1) {
+      state.currentFilteredPos = state.filteredIndexes.length - 1;
+    }
+
+    state.selected = [];
+    render();
+  }
+
+  function randomQuestion() {
+    if (!state.filteredIndexes.length) return;
+
+    state.currentFilteredPos = Math.floor(Math.random() * state.filteredIndexes.length);
+    state.selected = [];
+    render();
+  }
+
+  function toggleFlag() {
+    const q = getCurrentQuestion();
+    if (!q) return;
+
+    state.progress.flagged[q.id] = !state.progress.flagged[q.id];
+
+    if (!state.progress.flagged[q.id]) {
+      delete state.progress.flagged[q.id];
+    }
+
+    saveState();
+    renderStatusGrid();
+  }
+
+  function resetProgress() {
+    if (!confirm('確定要清除目前所有作答與標記紀錄嗎？')) return;
+
+    state.progress = {
+      answers: {},
+      flagged: {}
     };
 
-    // 鍵盤快捷鍵支援
-    window.onkeydown = (e) => {
-      if (['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
-      if (e.key === 'ArrowLeft') move(-1);
-      if (e.key === 'ArrowRight') move(1);
-      if (e.key.toLowerCase() === 'r') document.getElementById('randomBtn').click();
-      if (e.key === 'Enter') checkAnswer();
-    };
+    state.selected = [];
 
-    // 網頁開啟時自動載入
-    window.onload = loadQuestions;
-  </script>
+    saveState();
+    render();
+  }
+
+  function togglePanel() {
+    state.panelOpen = !state.panelOpen;
+    saveState();
+    renderStatusGrid();
+  }
+
+  function toggleEnglish() {
+    state.showEnglish = !state.showEnglish;
+    saveState();
+    renderStats();
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  els.loadBtn.addEventListener('click', loadQuestions);
+  els.reloadBtn.addEventListener('click', loadQuestions);
+
+  els.searchInput.addEventListener('input', () => {
+    applyFilter();
+    render();
+  });
+
+  els.modeSelect.addEventListener('change', () => {
+    state.mode = els.modeSelect.value;
+    saveState();
+    render();
+  });
+
+  els.randomBtn.addEventListener('click', randomQuestion);
+  els.flagBtn.addEventListener('click', toggleFlag);
+
+  els.onlyWrongBtn.addEventListener('click', () => {
+    state.onlyWrong = !state.onlyWrong;
+    applyFilter();
+    render();
+    saveState();
+  });
+
+  els.toggleEnglishBtn.addEventListener('click', toggleEnglish);
+  els.togglePanelBtn.addEventListener('click', togglePanel);
+  els.resetProgressBtn.addEventListener('click', resetProgress);
+  els.prevBtn.addEventListener('click', () => move(-1));
+  els.nextBtn.addEventListener('click', () => move(1));
+  els.submitBtn.addEventListener('click', () => submitAnswer(false));
+  els.showBtn.addEventListener('click', () => submitAnswer(true));
+
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+    if (e.key === 'ArrowLeft') move(-1);
+    if (e.key === 'ArrowRight') move(1);
+    if (e.key.toLowerCase() === 'r') randomQuestion();
+
+    if (['a', 'b', 'c', 'd', 'e'].includes(e.key.toLowerCase())) {
+      const choice = e.key.toUpperCase();
+      const q = getCurrentQuestion();
+
+      if (q && q.options[choice]) {
+        const selectedSet = new Set(state.selected);
+
+        if (selectedSet.has(choice)) {
+          selectedSet.delete(choice);
+        } else {
+          selectedSet.add(choice);
+        }
+
+        state.selected = Array.from(selectedSet).sort();
+
+        state.progress.answers[q.id] = {
+          ...(state.progress.answers[q.id] || {}),
+          selected: state.selected,
+        };
+
+        saveState();
+        render();
+      }
+    }
+
+    if (e.key === 'Enter') submitAnswer(false);
+  });
+
+  loadSavedState();
+  renderStatusGrid();
+  renderStats();
+  loadQuestions();
+</script>
 </body>
 </html>
