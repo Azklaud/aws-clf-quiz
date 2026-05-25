@@ -3,22 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AWS Quiz App CLF-C02 練習系統</title>
+  <title>AWS Quiz App｜CLF-C02 練習系統</title>
   <style>
     :root{
       --bg:#f7f1ff;
-      --bg-2:#f2e8ff;
       --card:rgba(255,255,255,.86);
-      --card-strong:#ffffff;
-      --line:#e5d8fb;
-      --line-2:#d8c2fb;
       --text:#473662;
       --muted:#7f6c9f;
       --primary:#c8a3ff;
       --primary-2:#b985ff;
       --deep:#6b44b5;
       --deep-2:#553296;
-      --deep-3:#442475;
       --good:#8f73da;
       --good-bg:#f0e9ff;
       --wrong:#d377a2;
@@ -42,8 +37,6 @@
       background-attachment: fixed;
     }
 
-    .loader{ display:none !important; }
-
     .wrap{
       width:min(1320px, calc(100vw - 28px));
       margin:18px auto 28px;
@@ -61,56 +54,24 @@
       box-shadow:var(--shadow);
     }
 
-    .sidebar{
-      padding:18px;
-      position:sticky;
-      top:16px;
-    }
+    .sidebar{ padding:18px; position:sticky; top:16px; }
+    .main{ padding:18px; }
 
-    .main{
-      padding:18px;
-    }
+    h1{ margin:0; font-size:1.55rem; color:var(--deep); letter-spacing:.02em; }
+    .subtitle{ margin-top:8px; color:var(--muted); line-height:1.6; font-size:.95rem; }
 
-    h1{
-      margin:0;
-      font-size:1.55rem;
-      color:var(--deep);
-      letter-spacing:.02em;
-    }
-
-    .subtitle{
-      margin-top:8px;
-      color:var(--muted);
-      line-height:1.6;
-      font-size:.95rem;
-    }
-
-    .toolbar,.grid{
-      display:grid;
-      gap:12px;
-    }
-
+    .toolbar, .grid{ display:grid; gap:12px; }
     .toolbar{ margin-top:16px; }
 
-    label{
-      display:block;
-      font-size:.9rem;
-      color:var(--muted);
-      margin-bottom:6px;
-      font-weight:600;
-    }
+    label{ display:block; font-size:.9rem; color:var(--muted); margin-bottom:6px; font-weight:600; }
 
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
     .row > *{ flex:1; }
 
     input,select,button{
       width:100%;
       border-radius:16px;
-      border:1px solid var(--line);
+      border:1px solid #e5d8fb;
       background:rgba(255,255,255,.92);
       color:var(--text);
       padding:11px 14px;
@@ -119,10 +80,7 @@
       transition:.15s ease;
     }
 
-    input:focus,select:focus{
-      border-color:var(--primary-2);
-      box-shadow:0 0 0 4px rgba(185,133,255,.14);
-    }
+    input:focus,select:focus{ border-color:var(--primary-2); box-shadow:0 0 0 4px rgba(185,133,255,.14); }
 
     button{
       cursor:pointer;
@@ -132,296 +90,69 @@
       border-color:transparent;
       box-shadow:0 9px 20px rgba(107,68,181,.18);
     }
-
     button:hover{ transform:translateY(-1px); filter:brightness(1.02); }
     button:active{ transform:translateY(0); }
 
-    button.secondary{
-      background:#f2e9ff;
-      color:var(--deep);
-      border:1px solid #decafc;
-      box-shadow:none;
-    }
+    button.secondary{ background:#f2e9ff; color:var(--deep); border:1px solid #decafc; box-shadow:none; }
+    button.good{ background:linear-gradient(180deg, #8f73da 0%, #7455c8 100%); }
+    button.warn{ background:linear-gradient(180deg, #7d58d4 0%, #633db9 100%); }
 
-    button.good{
-      background:linear-gradient(180deg, #8f73da 0%, #7455c8 100%);
-    }
-
-    button.warn{
-      background:linear-gradient(180deg, #7d58d4 0%, #633db9 100%);
-    }
-
-    .pill-row{
-      display:grid;
-      gap:10px;
-      margin-top:16px;
-    }
-
-    .pill{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      padding:12px 14px;
-      border-radius:18px;
-      background:rgba(255,255,255,.78);
-      border:1px solid var(--line);
-      font-size:.92rem;
-      color:var(--muted);
-    }
-
+    .pill-row{ display:grid; gap:10px; margin-top:16px; }
+    .pill{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 14px; border-radius:18px; background:rgba(255,255,255,.78); border:1px solid #e5d8fb; font-size:.92rem; color:var(--muted); }
     .pill b{ color:var(--deep); font-size:1rem; }
 
-    .section-title{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-top:18px;
-      margin-bottom:10px;
-    }
+    .section-title{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; margin-bottom:10px; }
+    .section-title strong{ color:var(--deep); font-size:1rem; }
 
-    .section-title strong{
-      color:var(--deep);
-      font-size:1rem;
-    }
-
-    .status-list{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      max-height:340px;
-      overflow:auto;
-      padding-right:4px;
-    }
-
+    .status-list{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-height:220px; overflow:auto; padding-right:4px; }
     .status-list::-webkit-scrollbar{ width:8px; }
     .status-list::-webkit-scrollbar-thumb{ background:#ccb1ff; border-radius:999px; }
 
-    .status-btn{
-      width:100%;
-      padding:11px 0;
-      border-radius:16px;
-      border:1px solid #dfcdfb;
-      background:linear-gradient(180deg, #d6b7ff 0%, #c18fff 100%);
-      color:white;
-      font-size:.9rem;
-      font-weight:800;
-      cursor:pointer;
-      box-shadow:0 6px 14px rgba(107,68,181,.1);
-    }
+    .status-btn{ width:100%; padding:11px 0; border-radius:16px; border:1px solid #dfcdfb; background:linear-gradient(180deg, #d6b7ff 0%, #c18fff 100%); color:white; font-size:.9rem; font-weight:800; cursor:pointer; box-shadow:0 6px 14px rgba(107,68,181,.1); }
+    .status-btn.current{ background:linear-gradient(180deg, var(--deep) 0%, var(--deep-2) 100%); outline:2px solid rgba(107,68,181,.16); outline-offset:2px; }
+    .status-btn.done{ box-shadow: inset 0 0 0 2px rgba(255,255,255,.34), 0 6px 14px rgba(107,68,181,.1); }
+    .status-btn.flagged{ position:relative; }
+    .status-btn.flagged::after{ content:"★"; position:absolute; top:4px; right:8px; font-size:.75rem; opacity:.95; }
 
-    .status-btn.current{
-      background:linear-gradient(180deg, var(--deep) 0%, var(--deep-2) 100%);
-      outline:2px solid rgba(107,68,181,.16);
-      outline-offset:2px;
-    }
+    .topbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .topbar .pill{ width:auto; min-width:140px; justify-content:center; background:rgba(255,255,255,.66); }
 
-    .status-btn.done{
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.34), 0 6px 14px rgba(107,68,181,.1);
-    }
+    .question-box{ padding:22px; border-radius:24px; background:rgba(255,255,255,.68); border:1px solid #e5d8fb; box-shadow:0 8px 22px rgba(107,68,181,.08); }
+    .q-id{ color:var(--deep); font-weight:900; letter-spacing:.06em; margin-bottom:14px; font-size:.95rem; }
+    .q-zh{ font-size:1.28rem; line-height:1.75; font-weight:700; color:var(--text); }
+    .en-wrap{ margin-top:14px; display:none; padding:14px 16px; border-radius:18px; background:#faf7ff; border:1px dashed #dcc7ff; }
+    .q-en{ font-size:.98rem; line-height:1.7; color:var(--muted); }
 
-    .status-btn.flagged{
-      position:relative;
-    }
-    .status-btn.flagged::after{
-      content:"★";
-      position:absolute;
-      top:4px;
-      right:8px;
-      font-size:.75rem;
-      opacity:.95;
-    }
+    .options{ display:grid; gap:12px; margin-top:16px; }
+    .option{ border:1.5px solid #e7dbfb; border-radius:22px; padding:16px; background:rgba(255,255,255,.9); cursor:pointer; transition:.15s ease; }
+    .option:hover{ border-color:#caa7ff; background:#fcfaff; transform:translateY(-1px); }
+    .option.selected{ border-color:var(--deep); box-shadow:0 0 0 4px rgba(107,68,181,.09); }
+    .option.correct{ background:var(--good-bg); border-color:var(--good); }
+    .option.wrong{ background:var(--wrong-bg); border-color:var(--wrong); }
 
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-
-    .topbar .pill{
-      width:auto;
-      min-width:140px;
-      justify-content:center;
-      background:rgba(255,255,255,.66);
-    }
-
-    .question-box{
-      padding:22px;
-      border-radius:24px;
-      background:rgba(255,255,255,.68);
-      border:1px solid var(--line);
-      box-shadow:0 8px 22px rgba(107,68,181,.08);
-    }
-
-    .q-id{
-      color:var(--deep);
-      font-weight:900;
-      letter-spacing:.06em;
-      margin-bottom:14px;
-      font-size:.95rem;
-    }
-
-    .q-zh{
-      font-size:1.28rem;
-      line-height:1.75;
-      font-weight:700;
-      color:var(--text);
-    }
-
-    .en-wrap{
-      margin-top:14px;
-      display:none;
-      padding:14px 16px;
-      border-radius:18px;
-      background:#faf7ff;
-      border:1px dashed #dcc7ff;
-    }
-
-    .q-en{
-      font-size:.98rem;
-      line-height:1.7;
-      color:var(--muted);
-    }
-
-    .options{
-      display:grid;
-      gap:12px;
-      margin-top:16px;
-    }
-
-    .option{
-      border:1.5px solid #e7dbfb;
-      border-radius:22px;
-      padding:16px;
-      background:rgba(255,255,255,.9);
-      cursor:pointer;
-      transition:.15s ease;
-    }
-
-    .option:hover{
-      border-color:#caa7ff;
-      background:#fcfaff;
-      transform:translateY(-1px);
-    }
-
-    .option.selected{
-      border-color:var(--deep);
-      box-shadow:0 0 0 4px rgba(107,68,181,.09);
-    }
-
-    .option.correct{
-      background:var(--good-bg);
-      border-color:var(--good);
-    }
-
-    .option.wrong{
-      background:var(--wrong-bg);
-      border-color:var(--wrong);
-    }
-
-    .option-head{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-    }
-
-    .badge{
-      min-width:38px;
-      height:38px;
-      border-radius:50%;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      background:#efe6ff;
-      color:var(--deep);
-      font-weight:900;
-      border:1px solid #ddc7ff;
-      flex-shrink:0;
-    }
-
+    .option-head{ display:flex; gap:12px; align-items:flex-start; }
+    .badge{ min-width:38px; height:38px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:#efe6ff; color:var(--deep); font-weight:900; border:1px solid #ddc7ff; flex-shrink:0; }
     .option-content{ flex:1; }
+    .opt-zh{ line-height:1.75; font-weight:700; color:var(--text); }
+    .opt-en{ display:none; margin-top:8px; padding-top:8px; border-top:1px dashed #ebdfff; color:var(--muted); line-height:1.65; font-size:.93rem; }
 
-    .opt-zh{
-      line-height:1.75;
-      font-weight:700;
-      color:var(--text);
-    }
+    .show-en .opt-en, .show-en .en-wrap{ display:block; }
 
-    .opt-en{
-      display:none;
-      margin-top:8px;
-      padding-top:8px;
-      border-top:1px dashed #ebdfff;
-      color:var(--muted);
-      line-height:1.65;
-      font-size:.93rem;
-    }
+    .action-row{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+    .action-row button{ width:auto; min-width:120px; }
 
-    .show-en .opt-en,
-    .show-en .en-wrap{
-      display:block;
-    }
-
-    .action-row{
-      display:flex;
-      gap:10px;
-      margin-top:18px;
-      flex-wrap:wrap;
-    }
-
-    .action-row button{
-      width:auto;
-      min-width:120px;
-    }
-
-    .feedback{
-      margin-top:16px;
-      padding:14px 16px;
-      border-radius:18px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.84);
-      line-height:1.75;
-      display:none;
-    }
-
+    .feedback{ margin-top:16px; padding:14px 16px; border-radius:18px; border:1px solid #e5d8fb; background:rgba(255,255,255,.84); line-height:1.75; display:none; }
     .feedback.show{ display:block; }
     .feedback.ok{ border-color:var(--good); background:var(--good-bg); }
     .feedback.no{ border-color:var(--wrong); background:var(--wrong-bg); }
 
-    .helper{
-      color:var(--muted);
-      font-size:.9rem;
-      line-height:1.65;
-    }
+    .helper{ color:var(--muted); font-size:.9rem; line-height:1.65; margin-top:14px; }
 
-    @media (max-width: 980px){
-      .wrap{ grid-template-columns:1fr; }
-      .sidebar{ position:static; }
-      .status-list{ grid-template-columns:repeat(5,1fr); max-height:260px; }
-    }
+    hr { border: 0; height: 1px; background: #e5d8fb; margin: 4px 0; }
 
-    @media (max-width: 680px){
-      .wrap{ width:min(100vw - 18px, 100%); margin:10px auto 18px; }
-      .main,.sidebar,.question-box{ padding:16px; }
-      .status-list{ grid-template-columns:repeat(4,1fr); }
-      .q-zh{ font-size:1.08rem; }
-      .action-row button{ flex:1 1 calc(50% - 10px); min-width:auto; }
-    }
+    @media (max-width: 980px){ .wrap{ grid-template-columns:1fr; } .sidebar{ position:static; } .status-list{ grid-template-columns:repeat(5,1fr); max-height:260px; } }
+    @media (max-width: 680px){ .wrap{ width:min(100vw - 18px, 100%); margin:10px auto 18px; } .main,.sidebar,.question-box{ padding:16px; } .status-list{ grid-template-columns:repeat(4,1fr); } .q-zh{ font-size:1.08rem; } .action-row button{ flex:1 1 calc(50% - 10px); min-width:auto; } }
   </style>
-</head>
-  <meta charset="UTF-8" />
-  <title>AWS Quiz App｜CLF-C02 練習系統</title>
-
-  <meta name="description" content="AWS CLF-C02 線上刷題系統，支援中英文切換與錯題練習">
-
-  <meta property="og:title" content="AWS Quiz App｜CLF-C02 練習系統">
-  <meta property="og:description" content="線上 AWS 刷題系統｜中英文切換｜模擬測驗">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://azklaud.github.io/aws-clf-quiz/">
 </head>
 <body>
   <div class="wrap">
@@ -453,17 +184,33 @@
           </select>
         </div>
 
+        <hr>
+
         <div class="row">
-          <button id="randomBtn" class="warn">隨機一題</button>
+          <div>
+            <label for="rangeStart">起始題號</label>
+            <input id="rangeStart" type="number" placeholder="例如 5" />
+          </div>
+          <div>
+            <label for="rangeEnd">結束題號</label>
+            <input id="rangeEnd" type="number" placeholder="例如 150" />
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="rangeRandomBtn" class="warn">範圍隨機</button>
+          <button id="randomBtn" class="secondary">全部隨機</button>
+        </div>
+
+        <hr>
+
+        <div class="row">
           <button id="flagBtn" class="secondary">標記此題</button>
-        </div>
-
-        <div class="row">
           <button id="onlyWrongBtn" class="secondary">只看答錯</button>
-          <button id="toggleEnglishBtn" class="secondary">顯示英文</button>
         </div>
 
         <div class="row">
+          <button id="toggleEnglishBtn" class="secondary">顯示英文</button>
           <button id="resetProgressBtn" class="secondary">清除紀錄</button>
         </div>
       </div>
@@ -480,9 +227,9 @@
       </div>
       <div class="status-list" id="statusList"></div>
 
-      <div class="helper" style="margin-top:14px;">
+      <div class="helper">
         作答、標記與模式會自動存在瀏覽器 localStorage。<br>
-        鍵盤也能操作：A/B/C/D/E 選答案、Enter 送出、←/→ 換題、R 隨機。
+        鍵盤快捷鍵：A/B/C/D/E 選答案、Enter 送出、←/→ 換題、R 隨機。
       </div>
     </aside>
 
@@ -520,7 +267,10 @@
     reloadBtn: document.getElementById('reloadBtn'),
     searchInput: document.getElementById('searchInput'),
     modeSelect: document.getElementById('modeSelect'),
+    rangeStart: document.getElementById('rangeStart'),
+    rangeEnd: document.getElementById('rangeEnd'),
     randomBtn: document.getElementById('randomBtn'),
+    rangeRandomBtn: document.getElementById('rangeRandomBtn'),
     flagBtn: document.getElementById('flagBtn'),
     onlyWrongBtn: document.getElementById('onlyWrongBtn'),
     toggleEnglishBtn: document.getElementById('toggleEnglishBtn'),
@@ -545,7 +295,7 @@
     mainRoot: document.getElementById('mainRoot')
   };
 
-  const STORAGE_KEY = 'aws-clf-c02-live-state-purple-v2-multiselect';
+  const STORAGE_KEY = 'aws-clf-c02-live-state-v3';
 
   const state = {
     questions: [],
@@ -560,22 +310,21 @@
       answers: {},
       flagged: {},
     },
+    rangePractice: {
+      start: null,
+      end: null,
+      usedIds: []
+    }
   };
 
   function normalizeAnswer(ans) {
     if (Array.isArray(ans)) return ans.map(String).sort();
-
-    return String(ans || '')
-      .split('')
-      .map(x => x.trim())
-      .filter(Boolean)
-      .sort();
+    return String(ans || '').split('').map(x => x.trim()).filter(Boolean).sort();
   }
 
   function isAnswerCorrect(selected, answer) {
     const s = normalizeAnswer(selected);
     const a = normalizeAnswer(answer);
-
     return s.length === a.length && s.every((x, i) => x === a[i]);
   }
 
@@ -587,6 +336,7 @@
       onlyWrong: state.onlyWrong,
       showEnglish: state.showEnglish,
       panelOpen: state.panelOpen,
+      rangePractice: state.rangePractice
     }));
   }
 
@@ -596,21 +346,19 @@
 
     try {
       const parsed = JSON.parse(raw);
-
-      if (parsed.mode) {
-        state.mode = parsed.mode;
-        els.modeSelect.value = parsed.mode;
-      }
-
+      if (parsed.mode) { state.mode = parsed.mode; els.modeSelect.value = parsed.mode; }
       if (parsed.progress) state.progress = parsed.progress;
       if (parsed.jsonPath) els.jsonPath.value = parsed.jsonPath;
       if (typeof parsed.onlyWrong === 'boolean') state.onlyWrong = parsed.onlyWrong;
       if (typeof parsed.showEnglish === 'boolean') state.showEnglish = parsed.showEnglish;
       if (typeof parsed.panelOpen === 'boolean') state.panelOpen = parsed.panelOpen;
-
-    } catch (e) {
-      console.warn('Failed to load saved state', e);
-    }
+      
+      if (parsed.rangePractice) {
+        state.rangePractice = parsed.rangePractice;
+        if (state.rangePractice.start) els.rangeStart.value = state.rangePractice.start;
+        if (state.rangePractice.end) els.rangeEnd.value = state.rangePractice.end;
+      }
+    } catch (e) { console.warn('Failed to load saved state', e); }
   }
 
   async function loadQuestions() {
@@ -620,7 +368,6 @@
     try {
       const res = await fetch(path);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error('JSON 不是陣列格式');
 
@@ -632,10 +379,8 @@
       state.currentFilteredPos = 0;
       render();
       saveState();
-
     } catch (err) {
       console.error(err);
-
       els.qZh.textContent = '載入失敗';
       els.qEn.textContent = `請確認 JSON 路徑是否正確，錯誤訊息：${err.message}`;
       els.options.innerHTML = '';
@@ -649,29 +394,20 @@
     return state.questions[idx];
   }
 
-  function normalize(text) {
-    return String(text || '').toLowerCase();
-  }
-
   function applyFilter() {
-    const keyword = normalize(els.searchInput.value.trim());
+    const keyword = String(els.searchInput.value || '').trim().toLowerCase();
 
     state.filteredIndexes = state.questions
       .map((q, i) => ({ q, i }))
       .filter(({ q }) => {
         const answerState = state.progress.answers[q.id];
-
         if (state.onlyWrong && (!answerState || answerState.correct !== false)) return false;
 
         if (!keyword) return true;
-
         const blob = [
-          q.id,
-          q.question_en,
-          q.question_zh,
+          q.id, q.question_en, q.question_zh,
           ...Object.entries(q.options || {}).flatMap(([k, v]) => [k, v?.en, v?.zh]),
         ].join(' \n ').toLowerCase();
-
         return blob.includes(keyword);
       })
       .map(x => x.i);
@@ -683,7 +419,6 @@
 
   function renderStatusGrid() {
     els.statusList.innerHTML = '';
-
     const fragment = document.createDocumentFragment();
 
     state.filteredIndexes.forEach((originalIndex, pos) => {
@@ -719,8 +454,7 @@
 
     els.totalCount.textContent = String(state.filteredIndexes.length || state.questions.length || 0);
     els.currentIndex.textContent = state.filteredIndexes.length
-      ? `${state.currentFilteredPos + 1} / ${state.filteredIndexes.length}`
-      : '0';
+      ? `${state.currentFilteredPos + 1} / ${state.filteredIndexes.length}` : '0';
 
     els.scoreInfo.textContent = `${correct} / ${answered}`;
     els.modeText.textContent = state.mode === 'practice' ? '練習模式' : '測驗模式';
@@ -750,9 +484,7 @@
     els.qZh.textContent = q.question_zh || '';
     els.qEn.textContent = q.question_en || '';
 
-    state.selected = Array.isArray(saved.selected)
-      ? saved.selected
-      : normalizeAnswer(saved.selected);
+    state.selected = Array.isArray(saved.selected) ? saved.selected : normalizeAnswer(saved.selected);
 
     els.options.innerHTML = '';
 
@@ -760,24 +492,14 @@
       const div = document.createElement('div');
       div.className = 'option';
 
-      if (state.selected.includes(key)) {
-        div.classList.add('selected');
-      }
+      if (state.selected.includes(key)) div.classList.add('selected');
 
-      const shouldReveal = state.mode === 'practice'
-        ? saved.revealed
-        : saved.submitted;
+      const shouldReveal = state.mode === 'practice' ? saved.revealed : saved.submitted;
 
       if (shouldReveal) {
         const correctAnswers = normalizeAnswer(q.answer);
-
-        if (correctAnswers.includes(key)) {
-          div.classList.add('correct');
-        }
-
-        if (state.selected.includes(key) && !correctAnswers.includes(key)) {
-          div.classList.add('wrong');
-        }
+        if (correctAnswers.includes(key)) div.classList.add('correct');
+        if (state.selected.includes(key) && !correctAnswers.includes(key)) div.classList.add('wrong');
       }
 
       div.innerHTML = `
@@ -792,19 +514,11 @@
 
       div.addEventListener('click', () => {
         const selectedSet = new Set(state.selected);
-
-        if (selectedSet.has(key)) {
-          selectedSet.delete(key);
-        } else {
-          selectedSet.add(key);
-        }
+        if (selectedSet.has(key)) selectedSet.delete(key);
+        else selectedSet.add(key);
 
         state.selected = Array.from(selectedSet).sort();
-
-        state.progress.answers[q.id] = {
-          ...(state.progress.answers[q.id] || {}),
-          selected: state.selected,
-        };
+        state.progress.answers[q.id] = { ...(state.progress.answers[q.id] || {}), selected: state.selected };
 
         saveState();
         renderQuestion();
@@ -823,9 +537,7 @@
     if (!q) return;
 
     const saved = state.progress.answers[q.id] || {};
-    const revealed = state.mode === 'practice'
-      ? saved.revealed
-      : saved.submitted;
+    const revealed = state.mode === 'practice' ? saved.revealed : saved.submitted;
 
     if (!revealed) {
       els.feedback.className = 'feedback';
@@ -833,18 +545,11 @@
       return;
     }
 
-    const selected = Array.isArray(saved.selected)
-      ? saved.selected
-      : normalizeAnswer(saved.selected);
-
+    const selected = Array.isArray(saved.selected) ? saved.selected : normalizeAnswer(saved.selected);
     const correct = saved.correct === true || isAnswerCorrect(selected, q.answer);
 
     els.feedback.className = `feedback show ${correct ? 'ok' : 'no'}`;
-
-    const selectedText = selected.length
-      ? `你選的是 <b>${selected.join(', ')}</b>`
-      : '你尚未作答';
-
+    const selectedText = selected.length ? `你選的是 <b>${selected.join(', ')}</b>` : '你尚未作答';
     els.feedback.innerHTML = `${selectedText}，正確答案是 <b>${normalizeAnswer(q.answer).join(', ')}</b>。`;
   }
 
@@ -859,9 +564,7 @@
     if (!q) return;
 
     const prev = state.progress.answers[q.id] || {};
-    const selected = Array.isArray(prev.selected)
-      ? prev.selected
-      : state.selected;
+    const selected = Array.isArray(prev.selected) ? prev.selected : state.selected;
 
     if (!showOnly && (!selected || selected.length === 0)) {
       alert('請至少選一個答案');
@@ -882,99 +585,103 @@
 
   function move(step) {
     if (!state.filteredIndexes.length) return;
-
     state.currentFilteredPos += step;
-
     if (state.currentFilteredPos < 0) state.currentFilteredPos = 0;
-    if (state.currentFilteredPos > state.filteredIndexes.length - 1) {
-      state.currentFilteredPos = state.filteredIndexes.length - 1;
-    }
-
+    if (state.currentFilteredPos > state.filteredIndexes.length - 1) state.currentFilteredPos = state.filteredIndexes.length - 1;
     state.selected = [];
     render();
   }
 
   function randomQuestion() {
     if (!state.filteredIndexes.length) return;
-
     state.currentFilteredPos = Math.floor(Math.random() * state.filteredIndexes.length);
     state.selected = [];
+    render();
+  }
+
+  function rangeRandomQuestion() {
+    if (!state.questions.length) return;
+
+    const start = Number(els.rangeStart.value);
+    const end = Number(els.rangeEnd.value);
+
+    if (!start || !end || start > end) {
+      alert('請輸入正確範圍，例如 5 到 150');
+      return;
+    }
+
+    const rangeKeyChanged = state.rangePractice.start !== start || state.rangePractice.end !== end;
+
+    if (rangeKeyChanged) {
+      state.rangePractice = { start, end, usedIds: [] };
+    }
+
+    const rangeIndexes = state.filteredIndexes.filter(originalIndex => {
+      const q = state.questions[originalIndex];
+      const num = Number(String(q.id).replace(/\D/g, ''));
+      return num >= start && num <= end;
+    });
+
+    if (!rangeIndexes.length) {
+      alert(`找不到第 ${start} 到第 ${end} 題`);
+      return;
+    }
+
+    const availableIndexes = rangeIndexes.filter(originalIndex => {
+      const q = state.questions[originalIndex];
+      return !state.rangePractice.usedIds.includes(q.id);
+    });
+
+    if (!availableIndexes.length) {
+      alert(`第 ${start} 到第 ${end} 題已經全部練習完畢！`);
+      state.rangePractice.usedIds = [];
+      saveState();
+      return;
+    }
+
+    const pickedOriginalIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+    const pickedQuestion = state.questions[pickedOriginalIndex];
+
+    state.rangePractice.usedIds.push(pickedQuestion.id);
+    state.currentFilteredPos = state.filteredIndexes.indexOf(pickedOriginalIndex);
+    state.selected = [];
+
+    saveState();
     render();
   }
 
   function toggleFlag() {
     const q = getCurrentQuestion();
     if (!q) return;
-
     state.progress.flagged[q.id] = !state.progress.flagged[q.id];
-
-    if (!state.progress.flagged[q.id]) {
-      delete state.progress.flagged[q.id];
-    }
-
+    if (!state.progress.flagged[q.id]) delete state.progress.flagged[q.id];
     saveState();
     renderStatusGrid();
   }
 
   function resetProgress() {
     if (!confirm('確定要清除目前所有作答與標記紀錄嗎？')) return;
-
-    state.progress = {
-      answers: {},
-      flagged: {}
-    };
-
+    state.progress = { answers: {}, flagged: {} };
+    state.rangePractice = { start: null, end: null, usedIds: [] };
     state.selected = [];
-
+    els.rangeStart.value = '';
+    els.rangeEnd.value = '';
     saveState();
     render();
   }
 
-  function togglePanel() {
-    state.panelOpen = !state.panelOpen;
-    saveState();
-    renderStatusGrid();
-  }
-
-  function toggleEnglish() {
-    state.showEnglish = !state.showEnglish;
-    saveState();
-    renderStats();
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
-  }
+  function togglePanel() { state.panelOpen = !state.panelOpen; saveState(); renderStatusGrid(); }
+  function toggleEnglish() { state.showEnglish = !state.showEnglish; saveState(); renderStats(); }
+  function escapeHtml(str) { return String(str).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;'); }
 
   els.loadBtn.addEventListener('click', loadQuestions);
   els.reloadBtn.addEventListener('click', loadQuestions);
-
-  els.searchInput.addEventListener('input', () => {
-    applyFilter();
-    render();
-  });
-
-  els.modeSelect.addEventListener('change', () => {
-    state.mode = els.modeSelect.value;
-    saveState();
-    render();
-  });
-
+  els.searchInput.addEventListener('input', () => { applyFilter(); render(); });
+  els.modeSelect.addEventListener('change', () => { state.mode = els.modeSelect.value; saveState(); render(); });
   els.randomBtn.addEventListener('click', randomQuestion);
+  els.rangeRandomBtn.addEventListener('click', rangeRandomQuestion);
   els.flagBtn.addEventListener('click', toggleFlag);
-
-  els.onlyWrongBtn.addEventListener('click', () => {
-    state.onlyWrong = !state.onlyWrong;
-    applyFilter();
-    render();
-    saveState();
-  });
-
+  els.onlyWrongBtn.addEventListener('click', () => { state.onlyWrong = !state.onlyWrong; applyFilter(); render(); saveState(); });
   els.toggleEnglishBtn.addEventListener('click', toggleEnglish);
   els.togglePanelBtn.addEventListener('click', togglePanel);
   els.resetProgressBtn.addEventListener('click', resetProgress);
@@ -985,36 +692,27 @@
 
   window.addEventListener('keydown', (e) => {
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
-
     if (e.key === 'ArrowLeft') move(-1);
     if (e.key === 'ArrowRight') move(1);
-    if (e.key.toLowerCase() === 'r') randomQuestion();
+    
+    if (e.key.toLowerCase() === 'r') {
+      if (els.rangeStart.value && els.rangeEnd.value) rangeRandomQuestion();
+      else randomQuestion();
+    }
 
     if (['a', 'b', 'c', 'd', 'e'].includes(e.key.toLowerCase())) {
       const choice = e.key.toUpperCase();
       const q = getCurrentQuestion();
-
       if (q && q.options[choice]) {
         const selectedSet = new Set(state.selected);
-
-        if (selectedSet.has(choice)) {
-          selectedSet.delete(choice);
-        } else {
-          selectedSet.add(choice);
-        }
-
+        if (selectedSet.has(choice)) selectedSet.delete(choice);
+        else selectedSet.add(choice);
         state.selected = Array.from(selectedSet).sort();
-
-        state.progress.answers[q.id] = {
-          ...(state.progress.answers[q.id] || {}),
-          selected: state.selected,
-        };
-
+        state.progress.answers[q.id] = { ...(state.progress.answers[q.id] || {}), selected: state.selected };
         saveState();
         render();
       }
     }
-
     if (e.key === 'Enter') submitAnswer(false);
   });
 
@@ -1022,6 +720,6 @@
   renderStatusGrid();
   renderStats();
   loadQuestions();
-</script>
+  </script>
 </body>
 </html>
